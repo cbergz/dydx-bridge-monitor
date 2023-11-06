@@ -1,7 +1,7 @@
 package main
 
 import (
-	bridge "dydx-bridge-monitor"
+	bridge "dydx-bridge-monitor/pkg/contracts"
 	"log"
 	"math/big"
 
