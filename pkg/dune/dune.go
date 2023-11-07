@@ -9,9 +9,9 @@ import (
 	"os"
 )
 
-func uploadToDune() {
+func UploadToDune(filepath string) {
 	apiKey := "azqtH0LzxiCssnnL86uSkjdhDixni70r"
-	csvFilePath := "/home/cbergz/bridge_events.csv"
+	csvFilePath := filepath
 	url := "https://api.dune.com/api/v1/table/upload/csv"
 
 	file, err := os.Open(csvFilePath)

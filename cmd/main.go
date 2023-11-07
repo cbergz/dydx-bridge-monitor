@@ -2,6 +2,7 @@ package main
 
 import (
 	bridge "dydx-bridge-monitor/pkg/contracts"
+	dune "dydx-bridge-monitor/pkg/dune"
 	"encoding/csv"
 	"log"
 	"math/big"
@@ -69,6 +70,15 @@ func main() {
 	csvWriter := csv.NewWriter(csvFile)
 	csvWriter.Comma = ',' // Set the CSV delimiter
 
+	// Define CSV headers
+	headers := []string{"evt_id", "evt_tx_hash", "from", "accAddress", "amount"}
+
+	// Write headers to the CSV file
+	err = csvWriter.Write(headers)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Loop through all the events to find any new bridge transfers
 	for bridgeTransfers.Next() {
 		event := bridgeTransfers.Event
@@ -88,6 +98,7 @@ func main() {
 		// Add new transfers to the CSV file
 		data := []string{
 			strconv.FormatInt(eventID, 10),
+			event.Raw.TxHash.Hex(),
 			event.From.String(),
 			cosmosAddress,
 			strconv.FormatFloat(dydxAmount, 'f', -1, 64),
@@ -103,4 +114,6 @@ func main() {
 	if err := csvWriter.Error(); err != nil {
 		log.Fatal(err)
 	}
+
+	dune.UploadToDune("bridge_events.csv")
 }
