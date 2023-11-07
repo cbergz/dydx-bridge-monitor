@@ -2,7 +2,7 @@ package main
 
 import (
 	bridge "dydx-bridge-monitor/pkg/contracts"
-	dune "dydx-bridge-monitor/pkg/dune"
+	"dydx-bridge-monitor/pkg/dune"
 	"encoding/csv"
 	"log"
 	"math/big"
@@ -13,19 +13,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	_ "github.com/jackc/pgx/stdlib"
-	_ "github.com/lib/pq"
 )
 
 func main() {
-	// Setup the database connection and insert command
-	// db, err := sqlx.Connect("pgx", "postgresql://doadmin:AVNS_A3mgPzwuR6swL6WYcPs@db-postgresql-nyc1-02376-do-user-3592284-0.b.db.ondigitalocean.com:25060/dydx?sslmode=require")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer db.Close()
-	// insertStmt := `INSERT INTO bridge_events (id, sender, receiver, amount) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`
-
 	// Setup the connection to Ethereum using Infura RPC
 	client, err := ethclient.Dial("https://mainnet.infura.io/v3/f61acb8dac8b4fa5bd201f129cc37a67")
 	if err != nil {
@@ -70,13 +60,21 @@ func main() {
 	csvWriter := csv.NewWriter(csvFile)
 	csvWriter.Comma = ',' // Set the CSV delimiter
 
-	// Define CSV headers
-	headers := []string{"evt_id", "evt_tx_hash", "from", "accAddress", "amount"}
-
-	// Write headers to the CSV file
-	err = csvWriter.Write(headers)
+	// Check if the file is empty, and if so, write the header
+	fileInfo, err := csvFile.Stat()
 	if err != nil {
 		log.Fatal(err)
+	}
+	if fileInfo.Size() == 0 {
+		headers := []string{"evt_id", "evt_tx_hash", "from", "accAddress", "amount"}
+		err = csvWriter.Write(headers)
+		if err != nil {
+			log.Fatal(err)
+		}
+		csvWriter.Flush()
+		if err := csvWriter.Error(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Loop through all the events to find any new bridge transfers
