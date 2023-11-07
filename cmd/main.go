@@ -13,11 +13,21 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load API keys from env file
+	envErr := godotenv.Load(".env")
+	if envErr != nil {
+		log.Fatal("Error loading env file")
+	}
+	alchemyKey := os.Getenv("ALCHEMY_KEY")
+	duneKey := os.Getenv("DUNE_KEY")
+	filePath := os.Getenv("FILEPATH")
+
 	// Setup the connection to Ethereum using Infura RPC
-	client, err := ethclient.Dial("https://mainnet.infura.io/v3/f61acb8dac8b4fa5bd201f129cc37a67")
+	client, err := ethclient.Dial("https://mainnet.infura.io/v3/" + alchemyKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,8 +47,7 @@ func main() {
 	}
 
 	// Open or create a CSV file for reading and writing
-	csvFilePath := "bridge_events.csv"
-	csvFile, err := os.OpenFile(csvFilePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	csvFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,7 +61,6 @@ func main() {
 		log.Fatal(err)
 	}
 	for _, record := range records {
-		// Assuming the event ID is in the first column
 		existingData[record[0]] = true
 	}
 
@@ -82,10 +90,10 @@ func main() {
 		event := bridgeTransfers.Event
 
 		// Convert the values as needed for reading and inserting
-		eventID := event.Id.Int64()
+		eventID := event.Id.String()
 
 		// Check for duplicates based on event ID
-		if existingData[strconv.FormatInt(eventID, 10)] {
+		if existingData[eventID] {
 			continue // Skip duplicates
 		}
 
@@ -95,7 +103,7 @@ func main() {
 
 		// Add new transfers to the CSV file
 		data := []string{
-			strconv.FormatInt(eventID, 10),
+			eventID,
 			event.Raw.TxHash.Hex(),
 			event.From.String(),
 			cosmosAddress,
@@ -113,5 +121,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dune.UploadToDune("bridge_events.csv")
+	// Upload the final csv file to dune
+	dune.UploadToDune(filePath, duneKey)
 }

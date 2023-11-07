@@ -9,18 +9,18 @@ import (
 	"os"
 )
 
-func UploadToDune(filepath string) {
-	apiKey := "azqtH0LzxiCssnnL86uSkjdhDixni70r"
-	csvFilePath := filepath
+func UploadToDune(filepath string, api_key string) {
 	url := "https://api.dune.com/api/v1/table/upload/csv"
 
-	file, err := os.Open(csvFilePath)
+	// Open csv file
+	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println("Error opening CSV file:", err)
 		return
 	}
 	defer file.Close()
 
+	// Read data from csv file
 	data, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Println("Error reading CSV file:", err)
@@ -28,7 +28,7 @@ func UploadToDune(filepath string) {
 	}
 
 	headers := map[string]string{
-		"X-Dune-Api-Key": apiKey,
+		"X-Dune-Api-Key": api_key,
 	}
 
 	payload := map[string]interface{}{
