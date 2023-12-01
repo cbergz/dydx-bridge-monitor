@@ -22,12 +22,12 @@ func main() {
 	if envErr != nil {
 		log.Fatal("Error loading env file")
 	}
-	alchemyKey := os.Getenv("ALCHEMY_KEY")
+	infuraKey := os.Getenv("INFURA_KEY")
 	duneKey := os.Getenv("DUNE_KEY")
 	filePath := os.Getenv("FILEPATH")
 
 	// Setup the connection to Ethereum using Infura RPC
-	client, err := ethclient.Dial("https://mainnet.infura.io/v3/" + alchemyKey)
+	client, err := ethclient.Dial("https://mainnet.infura.io/v3/" + infuraKey)
 	if err != nil {
 		log.Fatal(err)
 	}
