@@ -4,6 +4,7 @@ import (
 	bridge "dydx-bridge-monitor/pkg/contracts"
 	"dydx-bridge-monitor/pkg/dune"
 	"encoding/csv"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -99,6 +100,7 @@ func main() {
 
 		dydxAmount, _ := new(big.Rat).SetInt(event.Amount).Float64()
 		dydxAmount = dydxAmount / float64(10e17)
+		fmt.Println(event.AccAddress)
 		cosmosAddress, _ := bech32.ConvertAndEncode("dydx", event.AccAddress)
 
 		// Add new transfers to the CSV file
