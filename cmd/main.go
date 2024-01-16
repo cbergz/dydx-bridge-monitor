@@ -27,15 +27,6 @@ func main() {
 	const maxAPICallsBeforePause = 50
 	const pauseDurationSeconds = 60
 
-	// Setup the database connection and insert command
-	db, err := sqlx.Connect("pgx", "postgresql://doadmin:AVNS_A3mgPzwuR6swL6WYcPs@db-postgresql-nyc1-02376-do-user-3592284-0.b.db.ondigitalocean.com:25061/dydx_user?sslmode=require")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	bridgeInsert := `INSERT INTO bridge_events (id, sender, receiver, amount) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`
-	holdersInsert := `INSERT INTO dydx_holders (dydx_address, ethereum_address) VALUES ($1, $2) ON CONFLICT (dydx_address) DO NOTHING`
-
 	// Load API keys from env file
 	envErr := godotenv.Load(".env")
 	if envErr != nil {
@@ -43,6 +34,16 @@ func main() {
 	}
 	alchemyKey := os.Getenv("ALCHEMY_KEY")
 	dydxApiUrl := os.Getenv("RPC_ENDPOINT")
+	sqlEndpoint := os.Getenv("SQL_ENDPOINT")
+
+	// Setup the database connection and insert command
+	db, err := sqlx.Connect("pgx", sqlEndpoint)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	bridgeInsert := `INSERT INTO bridge_events (id, sender, receiver, amount) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`
+	holdersInsert := `INSERT INTO dydx_holders (dydx_address, ethereum_address) VALUES ($1, $2) ON CONFLICT (dydx_address) DO NOTHING`
 
 	// Setup the connection to Ethereum using Infura RPC
 	client, err := ethclient.Dial("https://mainnet.infura.io/v3/" + alchemyKey)
